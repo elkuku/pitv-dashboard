@@ -5,6 +5,51 @@ import json, urllib.request, urllib.parse, os
 _last_cpu = None
 _ha = None
 _tide_cache: dict = {}
+_news_cache: dict = {}
+
+NEWS_FEEDS = {
+    'en': [
+        ('BBC',        'http://feeds.bbci.co.uk/news/world/rss.xml'),
+        ('DW',         'https://rss.dw.com/xml/rss-en-world'),
+        ('Al Jazeera', 'https://www.aljazeera.com/xml/rss/all.xml'),
+    ],
+    'de': [
+        ('Tagesschau', 'https://www.tagesschau.de/xml/rss2/'),
+        ('DW',         'https://rss.dw.com/xml/rss-de-all'),
+        ('Spiegel',    'https://www.spiegel.de/schlagzeilen/index.rss'),
+    ],
+    'es': [
+        ('BBC Mundo',  'http://feeds.bbci.co.uk/mundo/rss.xml'),
+        ('DW Español', 'https://rss.dw.com/xml/rss-es-all'),
+        ('El País',    'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada'),
+    ],
+}
+
+def fetch_news(lang='en'):
+    import xml.etree.ElementTree as ET
+    from datetime import datetime, timezone
+    global _news_cache
+    now = datetime.now(timezone.utc)
+    entry = _news_cache.get(lang, {})
+    if entry.get('time') and (now - entry['time']).seconds < 1800:
+        return entry['items']
+    feeds = NEWS_FEEDS.get(lang, NEWS_FEEDS['en'])
+    items = []
+    for source, url in feeds:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=10) as res:
+                root = ET.fromstring(res.read())
+            channel = root.find('channel') or root
+            for item in channel.findall('item')[:5]:
+                title = (item.findtext('title') or '').strip()
+                if title:
+                    items.append({'title': title, 'source': source})
+        except Exception:
+            pass
+    if items:
+        _news_cache[lang] = {'time': now, 'items': items}
+    return _news_cache.get(lang, {}).get('items', [])
 
 def load_ha_config():
     global _ha
@@ -104,6 +149,12 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_response(502); self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif parsed.path == '/api/news':
+            lang = params.get('lang', ['en'])[0]
+            if lang not in ('en', 'de', 'es'):
+                lang = 'en'
+            self.send_json(fetch_news(lang))
 
         elif parsed.path == '/api/tides':
             key = _ha.get('stormglass_key', '') if _ha else ''

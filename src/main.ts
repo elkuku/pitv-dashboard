@@ -6,6 +6,7 @@ import { initCalendar } from './calendar.js'
 import { initHome } from './home.js'
 import { applyI18n } from './i18n.js'
 import { loadTitle } from './config.js'
+import { initNews } from './news.js'
 
 interface Service {
   name: string
@@ -114,6 +115,7 @@ function init(): void {
   void initCalendar()
   void initHome()
   initSystem()
+  void initNews()
   initSettings()
 }
 
