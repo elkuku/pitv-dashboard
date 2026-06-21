@@ -15,6 +15,10 @@
           <span class="logo">PiTV</span>
         </div>
         <div class="header-right">
+          <div class="sys-stats">
+            <span class="sys-item">🌡 <span id="sys-temp">—</span></span>
+            <span class="sys-item">💾 <span id="sys-ram">—</span></span>
+          </div>
           <span class="clock" id="clock"></span>
           <button class="settings-btn" id="settings-btn" aria-label="Settings">&#9881;</button>
         </div>
@@ -24,15 +28,23 @@
           <h2 class="section-title">Streaming</h2>
           <div class="grid" id="service-grid"></div>
         </section>
-        <section class="section">
-          <h2 class="section-title">Weather · <span id="weather-location"></span></h2>
-          <div id="weather"></div>
-        </section>
+        <div class="bottom-row">
+          <section class="section">
+            <h2 class="section-title">Weather · <span id="weather-location"></span></h2>
+            <div id="weather"></div>
+          </section>
+          <section class="section">
+            <h2 class="section-title">Calendar</h2>
+            <div id="calendar"></div>
+          </section>
+        </div>
       </main>
     </div>
     <div class="settings-overlay" id="settings-overlay" hidden>
-      <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Location settings">
-        <h2 class="settings-title">Set Location</h2>
+      <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+        <h2 class="settings-title">Settings</h2>
+
+        <div class="settings-section-label">Location</div>
         <div class="settings-search">
           <input
             type="text"
@@ -44,7 +56,21 @@
           />
         </div>
         <ul class="settings-results" id="settings-results" role="listbox"></ul>
-        <button class="settings-close" id="settings-close">Cancel</button>
+
+        <div class="settings-section-label">Google Calendar ICS URL</div>
+        <div class="settings-cal-row">
+          <input
+            type="url"
+            id="cal-url-input"
+            class="settings-input"
+            placeholder="https://calendar.google.com/calendar/ical/…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="settings-save-btn" id="cal-url-save">Save</button>
+        </div>
+
+        <button class="settings-close" id="settings-close">Close</button>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

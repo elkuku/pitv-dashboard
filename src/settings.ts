@@ -1,20 +1,18 @@
 import { searchCity, type GeoResult } from './geocoding.js'
 import { saveLocation } from './config.js'
+import { saveCalendarUrl, loadCalendarUrl, initCalendar } from './calendar.js'
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-function overlay(): HTMLElement | null {
-  return document.getElementById('settings-overlay')
-}
-function input(): HTMLInputElement | null {
-  return document.getElementById('settings-input') as HTMLInputElement | null
-}
-function resultsList(): HTMLElement | null {
-  return document.getElementById('settings-results')
-}
+function overlay(): HTMLElement | null { return document.getElementById('settings-overlay') }
+function input(): HTMLInputElement | null { return document.getElementById('settings-input') as HTMLInputElement | null }
+function resultsList(): HTMLElement | null { return document.getElementById('settings-results') }
+function calInput(): HTMLInputElement | null { return document.getElementById('cal-url-input') as HTMLInputElement | null }
 
 function open(): void {
   overlay()?.removeAttribute('hidden')
+  const ci = calInput()
+  if (ci) ci.value = loadCalendarUrl()
   input()?.focus()
 }
 
@@ -45,10 +43,7 @@ function renderResults(results: GeoResult[]): void {
   if (!list) return
   list.innerHTML = ''
 
-  if (results.length === 0) {
-    setMessage('No cities found', true)
-    return
-  }
+  if (results.length === 0) { setMessage('No cities found', true); return }
 
   for (const r of results) {
     const li = document.createElement('li')
@@ -79,7 +74,6 @@ function renderResults(results: GeoResult[]): void {
         prev ? prev.focus() : input()?.focus()
       }
     })
-
     list.appendChild(li)
   }
 }
@@ -100,9 +94,7 @@ export function initSettings(): void {
   document.getElementById('settings-btn')?.addEventListener('click', open)
   document.getElementById('settings-close')?.addEventListener('click', close)
 
-  overlay()?.addEventListener('click', (e) => {
-    if (e.target === overlay()) close()
-  })
+  overlay()?.addEventListener('click', (e) => { if (e.target === overlay()) close() })
 
   const inp = input()
   inp?.addEventListener('input', () => {
@@ -122,12 +114,17 @@ export function initSettings(): void {
     }
   })
 
+  // Calendar URL save
+  document.getElementById('cal-url-save')?.addEventListener('click', () => {
+    const url = calInput()?.value.trim() ?? ''
+    saveCalendarUrl(url)
+    void initCalendar()
+    close()
+  })
+
   document.addEventListener('keydown', (e) => {
-    if ((e.key === 's' || e.key === 'S') && overlay()?.hasAttribute('hidden') && !(document.activeElement instanceof HTMLInputElement)) {
-      open()
-    }
-    if (e.key === 'Escape' && !overlay()?.hasAttribute('hidden')) {
-      close()
-    }
+    const hidden = overlay()?.hasAttribute('hidden')
+    if ((e.key === 's' || e.key === 'S') && hidden && !(document.activeElement instanceof HTMLInputElement)) open()
+    if (e.key === 'Escape' && !hidden) close()
   })
 }
