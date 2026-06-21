@@ -20,7 +20,7 @@ This file provides guidance to Claude Code when working in `pitv-dashboard/`.
 |------|---------|
 | `src/main.ts` | Entry point — clock, service tiles, wires up all modules |
 | `src/weather.ts` | Open-Meteo forecast fetch + render (refreshes every 30 min) |
-| `src/calendar.ts` | ICS fetch + parse + render; full month grid + upcoming list (refreshes every 15 min) |
+| `src/calendar.ts` | ICS fetch + parse + render; full month grid with ‹ › navigation + upcoming list (refreshes every 15 min) |
 | `src/home.ts` | Home Assistant device toggle cards (polls `/api/ha/devices` every 30s) |
 | `src/system.ts` | Pi CPU temp + CPU% + RAM poll from `/api/stats` (refreshes every 10s) |
 | `src/settings.ts` | Settings modal — dashboard title, language, city search, calendar URL |
@@ -97,6 +97,16 @@ To add a device: append to `devices` and run `systemctl --user restart pitv-stat
 - `applyI18n()` — fills all `[data-i18n]` and `[data-i18n-ph]` elements in the DOM
 
 To add a new string: add the key to all three language objects in `ui`, then use `t('yourKey')` and (if needed) add `data-i18n="yourKey"` to the HTML element.
+
+## Calendar navigation
+
+The calendar renders a full month grid with prev/next buttons in the header:
+
+- **‹ ›** step through months — re-renders from `_cachedEvents` without refetching
+- **Today** button (shown in `--accent` colour when off the current month) jumps back to today
+- Events list shows events from today onwards when on the current month; all events when on any other month
+- Past-day dimming is always relative to the real today, not the displayed month
+- `_monthOffset` and `_cachedEvents` are module-level in `calendar.ts`; `initCalendar()` resets offset to 0 and refetches
 
 ## Configuration (user-facing)
 
