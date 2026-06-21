@@ -2,6 +2,7 @@ import { searchCity, type GeoResult } from './geocoding.js'
 import { saveLocation } from './config.js'
 import { saveCalendarUrl, loadCalendarUrl, initCalendar } from './calendar.js'
 import { t, getLang, setLang, type Lang } from './i18n.js'
+import { loadTitle, saveTitle } from './config.js'
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -10,10 +11,14 @@ function input(): HTMLInputElement | null { return document.getElementById('sett
 function resultsList(): HTMLElement | null { return document.getElementById('settings-results') }
 function calInput(): HTMLInputElement | null { return document.getElementById('cal-url-input') as HTMLInputElement | null }
 
+function titleInput(): HTMLInputElement | null { return document.getElementById('title-input') as HTMLInputElement | null }
+
 function open(): void {
   overlay()?.removeAttribute('hidden')
   const ci = calInput()
   if (ci) ci.value = loadCalendarUrl()
+  const ti = titleInput()
+  if (ti) ti.value = loadTitle()
   input()?.focus()
 }
 
@@ -113,6 +118,15 @@ export function initSettings(): void {
       e.preventDefault()
       ;(resultsList()?.querySelector<HTMLElement>('.settings-result'))?.focus()
     }
+  })
+
+  // Dashboard title save
+  document.getElementById('title-save')?.addEventListener('click', () => {
+    const title = titleInput()?.value.trim() ?? ''
+    saveTitle(title)
+    const logoEl = document.querySelector<HTMLElement>('.logo')
+    if (logoEl) logoEl.textContent = loadTitle()
+    close()
   })
 
   // Calendar URL save

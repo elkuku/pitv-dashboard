@@ -5,6 +5,7 @@ import { initSystem } from './system.js'
 import { initCalendar } from './calendar.js'
 import { initHome } from './home.js'
 import { applyI18n } from './i18n.js'
+import { loadTitle } from './config.js'
 
 interface Service {
   name: string
@@ -100,6 +101,9 @@ function updateClock(): void {
 
 function init(): void {
   applyI18n()
+
+  const logoEl = document.querySelector<HTMLElement>('.logo')
+  if (logoEl) logoEl.textContent = loadTitle()
 
   const grid = document.getElementById('service-grid')
   if (grid) {

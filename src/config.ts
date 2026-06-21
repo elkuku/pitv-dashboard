@@ -1,4 +1,14 @@
 const STORAGE_KEY = 'pitv-location'
+const TITLE_KEY = 'pitv-title'
+const DEFAULT_TITLE = "KuKu's Home"
+
+export function loadTitle(): string {
+  return localStorage.getItem(TITLE_KEY) ?? DEFAULT_TITLE
+}
+
+export function saveTitle(title: string): void {
+  localStorage.setItem(TITLE_KEY, title || DEFAULT_TITLE)
+}
 
 export interface LocationConfig {
   name: string
