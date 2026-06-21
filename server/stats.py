@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json, urllib.request, urllib.parse
+import json, urllib.request, urllib.parse, os
 
 _last_cpu = None
+_ha = None
+
+def load_ha_config():
+    global _ha
+    cfg_path = os.path.join(os.path.dirname(__file__), 'ha-config.json')
+    try:
+        with open(cfg_path) as f:
+            _ha = json.load(f)
+    except Exception:
+        _ha = None
 
 def cpu_temp():
     try:
@@ -40,12 +50,28 @@ def mem_info():
     except:
         return None
 
+def ha_request(method, path, body=None):
+    if not _ha:
+        return None
+    url = _ha['url'].rstrip('/') + path
+    headers = {
+        'Authorization': f"Bearer {_ha['token']}",
+        'Content-Type': 'application/json',
+    }
+    data = json.dumps(body).encode() if body else None
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=5) as res:
+            return json.loads(res.read())
+    except Exception:
+        return None
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args): pass
 
-    def send_json(self, data):
+    def send_json(self, data, status=200):
         body = json.dumps(data).encode()
-        self.send_response(200)
+        self.send_response(status)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
@@ -61,6 +87,7 @@ class Handler(BaseHTTPRequestHandler):
                 'cpu_percent': cpu_percent(),
                 'mem': mem_info(),
             })
+
         elif parsed.path == '/api/calendar':
             url = params.get('url', [None])[0]
             if not url:
@@ -74,10 +101,53 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(502)
-                self.end_headers()
+                self.send_response(502); self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif parsed.path == '/api/ha/devices':
+            if not _ha:
+                self.send_json([], 404); return
+            result = []
+            for dev in _ha.get('devices', []):
+                state = ha_request('GET', f"/api/states/{dev['entity_id']}")
+                result.append({
+                    'entity_id': dev['entity_id'],
+                    'name': dev['name'],
+                    'icon': dev['icon'],
+                    'state': state['state'] if state else 'unavailable',
+                })
+            self.send_json(result)
+
         else:
             self.send_response(404); self.end_headers()
 
+    def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length)) if length else {}
+
+        if parsed.path == '/api/ha/toggle':
+            entity_id = body.get('entity_id')
+            if not entity_id or not _ha:
+                self.send_json({'error': 'missing entity_id'}, 400); return
+            state = ha_request('GET', f"/api/states/{entity_id}")
+            if not state:
+                self.send_json({'error': 'could not get state'}, 502); return
+            domain = entity_id.split('.')[0]
+            service = 'turn_off' if state['state'] == 'on' else 'turn_on'
+            ha_request('POST', f"/api/services/{domain}/{service}", {'entity_id': entity_id})
+            new_state = 'off' if state['state'] == 'on' else 'on'
+            self.send_json({'entity_id': entity_id, 'state': new_state})
+
+        else:
+            self.send_response(404); self.end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+load_ha_config()
 HTTPServer(('127.0.0.1', 3001), Handler).serve_forever()

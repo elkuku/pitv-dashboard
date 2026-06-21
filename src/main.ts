@@ -3,6 +3,7 @@ import { initWeather } from './weather.js'
 import { initSettings } from './settings.js'
 import { initSystem } from './system.js'
 import { initCalendar } from './calendar.js'
+import { initHome } from './home.js'
 
 interface Service {
   name: string
@@ -109,6 +110,7 @@ function init(): void {
 
   void initWeather()
   void initCalendar()
+  void initHome()
   initSystem()
   initSettings()
 }
