@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working in `pitv-dashboard/`.
 
 ## Project
 
-**PiTV** — a TV-optimized kiosk dashboard for a Raspberry Pi 5 connected to a 4K LG TV. Shows streaming service shortcuts, weather forecast, calendar events, and live Pi system stats.
+**KuKu's Home** (formerly PiTV) — a TV-optimized kiosk dashboard for a Raspberry Pi 5 connected to a 4K LG TV. Shows streaming service shortcuts, weather forecast, Google Calendar events, Home Assistant device controls, and live Pi system stats.
 
 ## Stack
 
@@ -20,12 +20,15 @@ This file provides guidance to Claude Code when working in `pitv-dashboard/`.
 |------|---------|
 | `src/main.ts` | Entry point — clock, service tiles, wires up all modules |
 | `src/weather.ts` | Open-Meteo forecast fetch + render (refreshes every 30 min) |
-| `src/calendar.ts` | ICS fetch + parse + render (refreshes every 15 min) |
-| `src/system.ts` | Pi CPU temp + RAM poll from `/api/stats` (refreshes every 10s) |
-| `src/settings.ts` | Settings modal — city search + calendar URL |
-| `src/config.ts` | `localStorage`-backed location config (fallback: Mannheim) |
+| `src/calendar.ts` | ICS fetch + parse + render; full month grid + upcoming list (refreshes every 15 min) |
+| `src/home.ts` | Home Assistant device toggle cards (polls `/api/ha/devices` every 30s) |
+| `src/system.ts` | Pi CPU temp + CPU% + RAM poll from `/api/stats` (refreshes every 10s) |
+| `src/settings.ts` | Settings modal — dashboard title, language, city search, calendar URL |
+| `src/config.ts` | `localStorage`-backed config: location (`pitv-location`), title (`pitv-title`) |
+| `src/i18n.ts` | Translations (EN/DE/ES), `t()`, `locale()`, `wmoLabel()`, `applyI18n()` |
 | `src/geocoding.ts` | Open-Meteo geocoding API for city search |
-| `server/stats.py` | Python HTTP server: `/api/stats` and `/api/calendar?url=` |
+| `server/stats.py` | Python HTTP server on port 3001: stats, calendar proxy, HA proxy |
+| `server/ha-config.json` | Home Assistant credentials + device list — **gitignored, never commit** |
 
 ## Commands
 
@@ -53,24 +56,58 @@ Nginx config: `pitv-nginx.conf` (symlinked to `/etc/nginx/sites-available/pitv`)
 ## Local API server
 
 `server/stats.py` runs as a systemd user service (`pitv-stats.service`) on `127.0.0.1:3001`.
-Nginx proxies `/api/` to it. Two endpoints:
+Nginx proxies `/api/` to it. Endpoints:
 
-- `GET /api/stats` — returns `{ cpu_temp, cpu_percent, mem: { used_mb, total_mb, percent } }`
+- `GET /api/stats` — `{ cpu_temp, cpu_percent, mem: { used_mb, total_mb, percent } }`
 - `GET /api/calendar?url=<encoded>` — proxies an ICS URL (avoids CORS)
+- `GET /api/ha/devices` — returns HA device list with live state (reads `ha-config.json`)
+- `POST /api/ha/toggle` — toggles a switch: `{ entity_id }` → `{ entity_id, state }`
 
 Service commands:
 ```
 systemctl --user status pitv-stats
-systemctl --user restart pitv-stats
+systemctl --user restart pitv-stats   # required after editing ha-config.json
 journalctl --user -u pitv-stats -f
 ```
+
+## Home Assistant integration
+
+HA credentials and device list live in `server/ha-config.json` (gitignored):
+
+```json
+{
+  "url": "http://192.168.178.25:8123",
+  "token": "<long-lived access token>",
+  "devices": [
+    { "entity_id": "switch.wiz_socket_a0fac7", "name": "TV", "icon": "📺" },
+    { "entity_id": "switch.kitchen_kitchen_1", "name": "Kitchen", "icon": "🍳" }
+  ]
+}
+```
+
+To add a device: append to `devices` and run `systemctl --user restart pitv-stats`. The `domain` (e.g. `switch`, `light`) is derived from the entity ID prefix and used to call the correct HA service.
+
+## Internationalisation
+
+`src/i18n.ts` supports **English, German, Spanish**. Selected language is stored in `localStorage` under `pitv-lang`; defaults to browser language (falls back to `en`).
+
+- `t(key)` — translated UI string
+- `wmoLabel(code)` — translated WMO weather condition
+- `locale()` — locale string for `toLocaleString` calls (`'en'`, `'de'`, `'es'`)
+- `applyI18n()` — fills all `[data-i18n]` and `[data-i18n-ph]` elements in the DOM
+
+To add a new string: add the key to all three language objects in `ui`, then use `t('yourKey')` and (if needed) add `data-i18n="yourKey"` to the HTML element.
 
 ## Configuration (user-facing)
 
 All config is stored in `localStorage` and set via the settings modal (press `S` or the gear icon):
 
-- **Location** — city search via Open-Meteo geocoding, stored in `pitv-location`
-- **Calendar** — Google Calendar ICS URL stored in `pitv-calendar-url`
+| Setting | localStorage key | Default |
+|---------|-----------------|---------|
+| Dashboard title | `pitv-title` | `KuKu's Home` |
+| Language | `pitv-lang` | browser language / `en` |
+| Location | `pitv-location` | Mannheim |
+| Calendar ICS URL | `pitv-calendar-url` | _(empty)_ |
 
 ## Display
 
@@ -85,3 +122,4 @@ https://github.com/elkuku/pitv-dashboard
 - Do not hardcode colors — use CSS custom properties: `--bg`, `--surface`, `--surface-hover`, `--border`, `--text`, `--text-muted`, `--accent`, `--focus-ring`.
 - All styles live in `src/styles.css` — no inline styles except `--brand` per-tile CSS variable.
 - UI is designed for TV navigation: `overflow: hidden` on body, `user-select: none`, visible focus rings (3px solid white). Preserve these when adding interactive elements.
+- All user-visible strings must go through `t()` — never hardcode UI text in TS files.
