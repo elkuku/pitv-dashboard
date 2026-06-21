@@ -72,24 +72,27 @@ function stat(icon: string, value: string, label: string, extraClass = ''): HTML
   return el
 }
 
-async function fetchTides(lat: number, lng: number): Promise<TideExtreme[] | null> {
+async function fetchTides(lat: number, lng: number): Promise<{ tides: TideExtreme[]; station: string } | null> {
   try {
     const res = await fetch(`/api/tides?lat=${lat}&lng=${lng}`)
     if (!res.ok) return null
     const data = await res.json()
-    return Array.isArray(data.data) ? data.data : null
+    if (!Array.isArray(data.data)) return null
+    const station: string = data.meta?.station?.name ?? ''
+    return { tides: data.data, station }
   } catch {
     return null
   }
 }
 
-function renderTides(tides: TideExtreme[]): HTMLElement {
+function renderTides(tides: TideExtreme[], station: string): HTMLElement {
   const row = document.createElement('div')
   row.className = 'weather-tides'
 
   const label = document.createElement('span')
   label.className = 'weather-tides-label'
-  label.textContent = `🌊 ${t('tides')}`
+  const stationLabel = station ? ` · ${station.charAt(0).toUpperCase() + station.slice(1)}` : ''
+  label.textContent = `🌊 ${t('tides')}${stationLabel}`
   row.appendChild(label)
 
   const items = document.createElement('div')
@@ -120,7 +123,7 @@ function renderTides(tides: TideExtreme[]): HTMLElement {
   return row
 }
 
-function renderWeather(data: OpenMeteoResponse, tides: TideExtreme[] | null): HTMLElement {
+function renderWeather(data: OpenMeteoResponse, tidesResult: { tides: TideExtreme[]; station: string } | null): HTMLElement {
   const { current, daily } = data
   const icon = wmoIcon(current.weather_code)
   const label = wmoLabel(current.weather_code)
@@ -202,7 +205,7 @@ function renderWeather(data: OpenMeteoResponse, tides: TideExtreme[] | null): HT
   }
 
   root.append(cur, forecast)
-  if (tides && tides.length > 0) root.appendChild(renderTides(tides))
+  if (tidesResult && tidesResult.tides.length > 0) root.appendChild(renderTides(tidesResult.tides, tidesResult.station))
   return root
 }
 

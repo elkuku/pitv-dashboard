@@ -80,12 +80,7 @@ function createTile(service: Service): HTMLAnchorElement {
     logoDiv.appendChild(span)
   }
 
-  const nameSpan = document.createElement('span')
-  nameSpan.className = 'tile-name'
-  nameSpan.textContent = service.name
-
   a.appendChild(logoDiv)
-  a.appendChild(nameSpan)
   return a
 }
 

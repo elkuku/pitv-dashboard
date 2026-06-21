@@ -109,9 +109,10 @@ class Handler(BaseHTTPRequestHandler):
             key = _ha.get('stormglass_key', '') if _ha else ''
             if not key:
                 self.send_json({'error': 'no stormglass key'}, 404); return
-            lat = params.get('lat', [None])[0]
-            lng = params.get('lng', [None])[0]
-            if not lat or not lng:
+            # Prefer explicit tide coordinates from config over weather location
+            lat = str(_ha.get('tide_lat') or params.get('lat', [None])[0])
+            lng = str(_ha.get('tide_lng') or params.get('lng', [None])[0])
+            if not lat or lat == 'None' or not lng or lng == 'None':
                 self.send_json({'error': 'missing lat/lng'}, 400); return
             from datetime import datetime, timezone, timedelta
             today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
@@ -120,9 +121,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(_tide_cache['data']); return
             start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
             end = start + timedelta(days=1)
+            fmt = '%Y-%m-%dT%H:%M:%SZ'
             tide_url = (f"https://api.stormglass.io/v2/tide/extremes/point"
                         f"?lat={lat}&lng={lng}"
-                        f"&start={start.isoformat()}&end={end.isoformat()}")
+                        f"&start={start.strftime(fmt)}&end={end.strftime(fmt)}")
             req = urllib.request.Request(tide_url, headers={'Authorization': key})
             try:
                 with urllib.request.urlopen(req, timeout=10) as res:
