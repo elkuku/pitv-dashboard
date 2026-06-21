@@ -4,7 +4,14 @@ This file provides guidance to Claude Code when working in `pitv-dashboard/`.
 
 ## Project
 
-**PiTV** — a TV-optimized streaming services dashboard built with Vue 3 + Vite.
+**PiTV** — a TV-optimized streaming services dashboard built with plain HTML, CSS, and TypeScript, bundled by Vite.
+
+## Stack
+
+- **HTML** — static layout in `index.html`
+- **TypeScript** — `src/main.ts` handles clock updates and dynamic tile rendering
+- **CSS** — all styles in `src/styles.css` (no scoped/component CSS)
+- **Vite** — build tool (handles TS natively, no framework plugin needed)
 
 ## Commands
 
@@ -13,6 +20,7 @@ Run from inside `pitv-dashboard/`:
 ```
 npm run dev       # Dev server (Vite)
 npm run build     # Production build → dist/
+npm run check     # TypeScript type check (tsc --noEmit)
 npm run preview   # Preview production build locally
 ```
 
@@ -27,16 +35,19 @@ sudo cp -r dist/. /var/www/pitv/
 
 Nginx config is at `pitv-dashboard/pitv-nginx.conf`. Claude has local read access to `/etc/nginx` and `/var/www/pitv`.
 
+## Repository
+
+https://github.com/elkuku/pitv-dashboard
+
 ## Testing
 
-No test framework is set up yet. Verify changes with `npm run build` (catches JS/Vue errors) and manual browser testing with `npm run dev`.
+No test framework is set up yet. Verify changes with `npm run check` (type errors) and `npm run build` (bundle errors), then manual browser testing with `npm run dev`.
 
-## Vue conventions
+## Conventions
 
-- Use Vue 3 Composition API with `<script setup>` — no Options API.
-- Scope CSS to components with `<style scoped>`.
 - Do not hardcode colors — use the CSS custom properties defined in `src/styles.css`:
   `--bg`, `--surface`, `--surface-hover`, `--border`, `--text`, `--text-muted`, `--accent`, `--focus-ring`.
+- All styles live in `src/styles.css` — no inline styles except `--brand` per-tile CSS variable.
 
 ## UI considerations
 
