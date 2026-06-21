@@ -16,6 +16,8 @@ interface OpenMeteoResponse {
     temperature_2m_max: number[]
     temperature_2m_min: number[]
     precipitation_probability_max: number[]
+    sunrise: string[]
+    sunset: string[]
   }
 }
 
@@ -78,11 +80,16 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
 
   const statsEl = document.createElement('div')
   statsEl.className = 'weather-stats'
+  const fmtTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
+
   statsEl.append(
     stat('🌡️', `${Math.round(current.apparent_temperature)}°C`, t('feelsLike')),
     stat('💧', `${current.relative_humidity_2m}%`, t('humidity')),
     stat('💨', `${Math.round(current.wind_speed_10m)} km/h`, t('wind')),
     stat('☀️', String(Math.round(current.uv_index)), t('uvIndex')),
+    stat('🌅', fmtTime(daily.sunrise[0]), t('sunrise')),
+    stat('🌇', fmtTime(daily.sunset[0]), t('sunset')),
   )
 
   cur.append(iconEl, info, statsEl)
@@ -138,7 +145,7 @@ export async function initWeather(): Promise<void> {
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${latitude}&longitude=${longitude}` +
     `&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,uv_index` +
-    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset` +
     `&timezone=auto&forecast_days=5`
 
   try {
