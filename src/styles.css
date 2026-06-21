@@ -643,6 +643,37 @@ html, body {
   border-color: var(--text);
 }
 
+.settings-lang-row {
+  display: flex;
+  gap: 10px;
+}
+
+.lang-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  outline: none;
+}
+
+.lang-btn:hover,
+.lang-btn:focus {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.lang-btn.active {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 .settings-search {
   display: flex;
   gap: 12px;

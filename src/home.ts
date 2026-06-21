@@ -1,3 +1,5 @@
+import { t } from './i18n.js'
+
 interface HADevice {
   entity_id: string
   name: string
@@ -40,7 +42,9 @@ function renderDevice(dev: HADevice): HTMLElement {
 
   const status = document.createElement('span')
   status.className = 'home-device-status'
-  status.textContent = dev.state === 'unavailable' ? 'Unavailable' : dev.state === 'on' ? 'On' : 'Off'
+  status.textContent =
+    dev.state === 'unavailable' ? t('deviceUnavailable') :
+    dev.state === 'on' ? t('deviceOn') : t('deviceOff')
 
   info.append(name, status)
 
@@ -56,37 +60,35 @@ export async function initHome(): Promise<void> {
   const container = document.getElementById('home-controls')
   if (!container) return
 
-  async function load() {
-    try {
-      const devices = await fetchDevices()
-      container.innerHTML = ''
+  try {
+    const devices = await fetchDevices()
+    container.innerHTML = ''
 
-      for (const dev of devices) {
-        const card = renderDevice(dev)
+    for (const dev of devices) {
+      const card = renderDevice(dev)
 
-        card.addEventListener('click', async () => {
-          card.disabled = true
-          try {
-            const updated = await toggleDevice(dev.entity_id)
-            dev.state = updated.state as HADevice['state']
-            const fresh = renderDevice(dev)
-            card.replaceWith(fresh)
-            fresh.addEventListener('click', card.onclick as EventListener)
-            // re-attach by reinitialising this device in place
-            initHome()
-          } catch {
-            card.disabled = false
-          }
-        })
+      card.addEventListener('click', async () => {
+        card.disabled = true
+        try {
+          const updated = await toggleDevice(dev.entity_id)
+          dev.state = updated.state as HADevice['state']
+          const fresh = renderDevice(dev)
+          card.replaceWith(fresh)
+          void initHome()
+        } catch {
+          card.disabled = false
+        }
+      })
 
-        container.appendChild(card)
-      }
-    } catch {
-      container.innerHTML = '<span class="home-error">Home unavailable</span>'
+      container.appendChild(card)
     }
+  } catch {
+    container.innerHTML = ''
+    const msg = document.createElement('span')
+    msg.className = 'home-error'
+    msg.textContent = t('homeUnavailable')
+    container.appendChild(msg)
   }
 
-  await load()
-  // Refresh state every 30 s
   setTimeout(() => initHome(), 30_000)
 }

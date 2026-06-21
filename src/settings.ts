@@ -1,6 +1,7 @@
 import { searchCity, type GeoResult } from './geocoding.js'
 import { saveLocation } from './config.js'
 import { saveCalendarUrl, loadCalendarUrl, initCalendar } from './calendar.js'
+import { t, getLang, setLang, type Lang } from './i18n.js'
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -43,7 +44,7 @@ function renderResults(results: GeoResult[]): void {
   if (!list) return
   list.innerHTML = ''
 
-  if (results.length === 0) { setMessage('No cities found', true); return }
+  if (results.length === 0) { setMessage(t('noResults'), true); return }
 
   for (const r of results) {
     const li = document.createElement('li')
@@ -81,12 +82,12 @@ function renderResults(results: GeoResult[]): void {
 async function doSearch(query: string): Promise<void> {
   const q = query.trim()
   if (q.length < 2) { clearResults(); return }
-  setMessage('Searching…')
+  setMessage(t('searching'))
   try {
     const results = await searchCity(q)
     renderResults(results)
   } catch {
-    setMessage('Search failed — check your connection', true)
+    setMessage(t('searchError'), true)
   }
 }
 
@@ -120,6 +121,12 @@ export function initSettings(): void {
     saveCalendarUrl(url)
     void initCalendar()
     close()
+  })
+
+  // Language buttons
+  document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === getLang())
+    btn.addEventListener('click', () => setLang(btn.dataset.lang as Lang))
   })
 
   document.addEventListener('keydown', (e) => {

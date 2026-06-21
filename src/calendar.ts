@@ -1,3 +1,5 @@
+import { t, locale } from './i18n.js'
+
 const STORAGE_KEY = 'pitv-calendar-url'
 
 export function loadCalendarUrl(): string {
@@ -60,15 +62,15 @@ function isSameDay(a: Date, b: Date): boolean {
 }
 
 function formatTime(d: Date): string {
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
 }
 
 function renderCalendar(events: CalEvent[]): HTMLElement {
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth()
+  const loc = locale()
 
-  // Index events by day-of-month for this month
   const eventDays = new Map<number, CalEvent[]>()
   for (const evt of events) {
     if (evt.start.getFullYear() === year && evt.start.getMonth() === month) {
@@ -85,15 +87,16 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
   const grid = document.createElement('div')
   grid.className = 'cal-grid'
 
-  // Month header
-  const monthName = new Date(year, month, 1).toLocaleDateString([], { month: 'long', year: 'numeric' })
+  const monthName = new Date(year, month, 1).toLocaleDateString(loc, { month: 'long', year: 'numeric' })
   const header = document.createElement('div')
   header.className = 'cal-grid-header'
   header.textContent = monthName
   grid.appendChild(header)
 
-  // Day-of-week names (Mon–Sun)
-  const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+  // Locale-aware day-of-week names starting Monday
+  const dayNames = Array.from({ length: 7 }, (_, i) =>
+    new Date(2024, 0, i + 1).toLocaleDateString(loc, { weekday: 'short' })
+  )
   const nameRow = document.createElement('div')
   nameRow.className = 'cal-grid-row'
   for (const n of dayNames) {
@@ -104,9 +107,8 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
   }
   grid.appendChild(nameRow)
 
-  // Day cells
-  const firstDayOfWeek = new Date(year, month, 1).getDay() // 0=Sun
-  const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1 // convert to Mon-based
+  const firstDayOfWeek = new Date(year, month, 1).getDay()
+  const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
   let row = document.createElement('div')
@@ -153,14 +155,13 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
 
       const dateEl = document.createElement('span')
       dateEl.className = 'cal-event-date'
-      const isToday = isSameDay(evt.start, today)
-      dateEl.textContent = isToday
-        ? 'Today'
-        : evt.start.toLocaleDateString([], { weekday: 'short', day: 'numeric' })
+      dateEl.textContent = isSameDay(evt.start, today)
+        ? t('today')
+        : evt.start.toLocaleDateString(loc, { weekday: 'short', day: 'numeric' })
 
       const timeEl = document.createElement('span')
       timeEl.className = 'cal-time'
-      timeEl.textContent = evt.allDay ? 'All day' : formatTime(evt.start)
+      timeEl.textContent = evt.allDay ? t('allDay') : formatTime(evt.start)
 
       const titleEl = document.createElement('span')
       titleEl.className = 'cal-title'
@@ -182,7 +183,11 @@ export async function initCalendar(): Promise<void> {
 
   const url = loadCalendarUrl()
   if (!url) {
-    container.innerHTML = '<span class="cal-empty">No calendar configured — open settings to add one.</span>'
+    container.innerHTML = ''
+    const msg = document.createElement('span')
+    msg.className = 'cal-empty'
+    msg.textContent = t('calendarEmpty')
+    container.appendChild(msg)
     return
   }
 
@@ -194,7 +199,11 @@ export async function initCalendar(): Promise<void> {
     container.innerHTML = ''
     container.appendChild(renderCalendar(events))
   } catch {
-    container.innerHTML = '<span class="cal-empty cal-error">Calendar unavailable</span>'
+    container.innerHTML = ''
+    const msg = document.createElement('span')
+    msg.className = 'cal-empty cal-error'
+    msg.textContent = t('calendarError')
+    container.appendChild(msg)
   }
 
   setTimeout(() => initCalendar(), 15 * 60 * 1000)

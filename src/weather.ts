@@ -1,4 +1,5 @@
 import { loadLocation } from './config.js'
+import { t, locale, wmoLabel } from './i18n.js'
 
 interface OpenMeteoResponse {
   current: {
@@ -18,42 +19,25 @@ interface OpenMeteoResponse {
   }
 }
 
-const WMO: Record<number, { icon: string; label: string }> = {
-  0:  { icon: '☀️',  label: 'Clear' },
-  1:  { icon: '🌤️', label: 'Mostly clear' },
-  2:  { icon: '⛅',  label: 'Partly cloudy' },
-  3:  { icon: '☁️',  label: 'Overcast' },
-  45: { icon: '🌫️', label: 'Fog' },
-  48: { icon: '🌫️', label: 'Icy fog' },
-  51: { icon: '🌦️', label: 'Light drizzle' },
-  53: { icon: '🌦️', label: 'Drizzle' },
-  55: { icon: '🌦️', label: 'Heavy drizzle' },
-  61: { icon: '🌧️', label: 'Light rain' },
-  63: { icon: '🌧️', label: 'Rain' },
-  65: { icon: '🌧️', label: 'Heavy rain' },
-  71: { icon: '🌨️', label: 'Light snow' },
-  73: { icon: '🌨️', label: 'Snow' },
-  75: { icon: '🌨️', label: 'Heavy snow' },
-  77: { icon: '🌨️', label: 'Snow grains' },
-  80: { icon: '🌦️', label: 'Light showers' },
-  81: { icon: '🌦️', label: 'Showers' },
-  82: { icon: '🌦️', label: 'Heavy showers' },
-  85: { icon: '🌨️', label: 'Snow showers' },
-  86: { icon: '🌨️', label: 'Heavy snow showers' },
-  95: { icon: '⛈️',  label: 'Thunderstorm' },
-  96: { icon: '⛈️',  label: 'Thunderstorm + hail' },
-  99: { icon: '⛈️',  label: 'Thunderstorm + hail' },
+const WMO_ICON: Record<number, string> = {
+  0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+  45: '🌫️', 48: '🌫️',
+  51: '🌦️', 53: '🌦️', 55: '🌦️',
+  61: '🌧️', 63: '🌧️', 65: '🌧️',
+  71: '🌨️', 73: '🌨️', 75: '🌨️', 77: '🌨️',
+  80: '🌦️', 81: '🌦️', 82: '🌦️',
+  85: '🌨️', 86: '🌨️',
+  95: '⛈️', 96: '⛈️', 99: '⛈️',
 }
 
-function wmo(code: number): { icon: string; label: string } {
-  if (WMO[code]) return WMO[code]
-  const nearest = Object.keys(WMO).map(Number).filter(k => k <= code).at(-1)
-  return nearest !== undefined ? WMO[nearest] : { icon: '🌡️', label: 'Unknown' }
+function wmoIcon(code: number): string {
+  const nearest = Object.keys(WMO_ICON).map(Number).filter(k => k <= code).at(-1)
+  return nearest !== undefined ? WMO_ICON[nearest] : '🌡️'
 }
 
 function dayLabel(dateStr: string, index: number): string {
-  if (index === 0) return 'Today'
-  return new Date(`${dateStr}T12:00:00`).toLocaleDateString([], { weekday: 'short' })
+  if (index === 0) return t('today')
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString(locale(), { weekday: 'short' })
 }
 
 function stat(icon: string, value: string, label: string): HTMLElement {
@@ -65,7 +49,8 @@ function stat(icon: string, value: string, label: string): HTMLElement {
 
 function renderWeather(data: OpenMeteoResponse): HTMLElement {
   const { current, daily } = data
-  const cond = wmo(current.weather_code)
+  const icon = wmoIcon(current.weather_code)
+  const label = wmoLabel(current.weather_code)
 
   const root = document.createElement('div')
   root.className = 'weather'
@@ -76,7 +61,7 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
 
   const iconEl = document.createElement('span')
   iconEl.className = 'weather-icon'
-  iconEl.textContent = cond.icon
+  iconEl.textContent = icon
 
   const info = document.createElement('div')
   info.className = 'weather-info'
@@ -87,18 +72,17 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
 
   const condEl = document.createElement('span')
   condEl.className = 'weather-condition'
-  condEl.textContent = cond.label
+  condEl.textContent = label
 
   info.append(tempEl, condEl)
 
-  // Stats grid
   const statsEl = document.createElement('div')
   statsEl.className = 'weather-stats'
   statsEl.append(
-    stat('🌡️', `${Math.round(current.apparent_temperature)}°C`, 'Feels like'),
-    stat('💧', `${current.relative_humidity_2m}%`, 'Humidity'),
-    stat('💨', `${Math.round(current.wind_speed_10m)} km/h`, 'Wind'),
-    stat('☀️', String(Math.round(current.uv_index)), 'UV index'),
+    stat('🌡️', `${Math.round(current.apparent_temperature)}°C`, t('feelsLike')),
+    stat('💧', `${current.relative_humidity_2m}%`, t('humidity')),
+    stat('💨', `${Math.round(current.wind_speed_10m)} km/h`, t('wind')),
+    stat('☀️', String(Math.round(current.uv_index)), t('uvIndex')),
   )
 
   cur.append(iconEl, info, statsEl)
@@ -108,7 +92,6 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
   forecast.className = 'weather-forecast'
 
   for (let i = 0; i < Math.min(5, daily.time.length); i++) {
-    const dc = wmo(daily.weather_code[i])
     const day = document.createElement('div')
     day.className = 'weather-day'
 
@@ -118,7 +101,7 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
 
     const dayIcon = document.createElement('span')
     dayIcon.className = 'weather-day-icon'
-    dayIcon.textContent = dc.icon
+    dayIcon.textContent = wmoIcon(daily.weather_code[i])
 
     const temps = document.createElement('span')
     temps.className = 'weather-day-temps'
@@ -165,7 +148,7 @@ export async function initWeather(): Promise<void> {
     container.innerHTML = ''
     container.appendChild(renderWeather(data))
   } catch {
-    container.textContent = 'Weather unavailable'
+    container.textContent = t('weatherError')
     container.classList.add('weather-error')
   }
 

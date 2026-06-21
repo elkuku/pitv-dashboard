@@ -4,6 +4,7 @@ import { initSettings } from './settings.js'
 import { initSystem } from './system.js'
 import { initCalendar } from './calendar.js'
 import { initHome } from './home.js'
+import { applyI18n } from './i18n.js'
 
 interface Service {
   name: string
@@ -98,6 +99,8 @@ function updateClock(): void {
 }
 
 function init(): void {
+  applyI18n()
+
   const grid = document.getElementById('service-grid')
   if (grid) {
     for (const service of services) {
