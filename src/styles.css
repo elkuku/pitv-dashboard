@@ -60,36 +60,42 @@ html, body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 32px;
-  padding: 32px 56px 48px;
+  gap: 24px;
+  padding: 24px 56px 44px;
+  min-height: 0;
 }
 
-.bottom-row {
+.info-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  gap: 32px;
+  flex: 1;
+  min-height: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
 }
 
 .section-title {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
-}
-
-@media (max-width: 1280px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Service tile */
@@ -99,30 +105,29 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 20px;
   background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: 16px;
-  padding: 32px 20px;
+  border-radius: 20px;
+  padding: 24px 20px;
   text-decoration: none;
   color: var(--text);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, transform 0.15s;
   outline: none;
-  aspect-ratio: 3/2;
 }
 
 .tile:hover,
 .tile:focus {
   background: var(--surface-hover);
   border-color: var(--brand, #fff);
-  transform: scale(1.04);
+  transform: scale(1.03);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand, #fff) 40%, transparent);
 }
 
 .tile-logo {
-  width: 80px;
-  height: 80px;
+  width: 110px;
+  height: 110px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,17 +137,17 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
 }
 
 .tile-initials {
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 700;
   color: var(--brand, #fff);
 }
 
 .tile-name {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-muted);
   text-align: center;
@@ -151,51 +156,84 @@ html, body {
 
 /* Weather */
 
+#weather {
+  flex: 1;
+  min-height: 0;
+}
+
 .weather {
+  height: 100%;
   display: flex;
-  align-items: center;
-  gap: 56px;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .weather-current {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-shrink: 0;
+  gap: 24px;
+  flex: 1;
 }
 
 .weather-icon {
-  font-size: 3.5rem;
+  font-size: 5rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
-.weather-current-details {
+.weather-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .weather-temp {
-  font-size: 2.4rem;
+  font-size: 3.6rem;
   font-weight: 700;
   color: var(--text);
   line-height: 1;
 }
 
 .weather-condition {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-muted);
 }
 
-.weather-wind {
-  font-size: 0.85rem;
+.weather-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  flex: 1;
+}
+
+.weather-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weather-stat-icon {
+  font-size: 1rem;
+}
+
+.weather-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.weather-stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--text-muted);
+  letter-spacing: 0.04em;
 }
 
 .weather-forecast {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
 }
 
@@ -204,11 +242,12 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 8px;
+  border-radius: 14px;
+  padding: 10px 6px;
 }
 
 .weather-day-label {
@@ -220,14 +259,14 @@ html, body {
 }
 
 .weather-day-icon {
-  font-size: 1.6rem;
+  font-size: 2rem;
   line-height: 1;
 }
 
 .weather-day-temps {
   display: flex;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -239,9 +278,15 @@ html, body {
   color: var(--text-muted);
 }
 
+.weather-day-precip {
+  font-size: 0.75rem;
+  color: #60a5fa;
+  font-weight: 600;
+}
+
 .weather-error {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 /* System stats */
@@ -261,44 +306,118 @@ html, body {
 
 /* Calendar */
 
-.cal-root {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+#calendar {
+  flex: 1;
+  min-height: 0;
 }
 
-.cal-group {
-  flex: 1;
+.cal-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+
+/* Month grid */
+
+.cal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cal-grid-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.cal-grid-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 8px;
+  position: relative;
+}
+
+.cal-cell-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cal-cell-today {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cal-cell-past {
+  opacity: 0.3;
+}
+
+.cal-cell-event:not(.cal-cell-past) {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.cal-cell-event:not(.cal-cell-today)::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* Upcoming events list */
+
+.cal-events {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.cal-group-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.cal-group-label.cal-today {
-  color: var(--text);
+  overflow: hidden;
 }
 
 .cal-event {
   display: flex;
   gap: 12px;
-  align-items: baseline;
+  align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px 14px;
+  flex-shrink: 0;
+}
+
+.cal-event-date {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 44px;
 }
 
 .cal-time {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
@@ -315,7 +434,7 @@ html, body {
 }
 
 .cal-empty {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
 }
 
