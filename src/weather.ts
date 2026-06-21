@@ -1,4 +1,4 @@
-import { config } from './config.js'
+import { loadLocation } from './config.js'
 
 interface OpenMeteoResponse {
   current: {
@@ -131,9 +131,10 @@ export async function initWeather(): Promise<void> {
   const titleEl = document.getElementById('weather-location')
   if (!container) return
 
-  if (titleEl) titleEl.textContent = config.location.name
+  const loc = loadLocation()
+  if (titleEl) titleEl.textContent = loc.name
 
-  const { latitude, longitude } = config.location
+  const { latitude, longitude } = loc
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${latitude}&longitude=${longitude}` +

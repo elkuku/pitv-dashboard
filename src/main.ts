@@ -1,5 +1,6 @@
 import './styles.css'
 import { initWeather } from './weather.js'
+import { initSettings } from './settings.js'
 
 interface Service {
   name: string
@@ -105,6 +106,7 @@ function init(): void {
   setInterval(updateClock, 10_000)
 
   void initWeather()
+  initSettings()
 }
 
 init()
