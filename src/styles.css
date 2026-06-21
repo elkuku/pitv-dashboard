@@ -692,6 +692,7 @@ html, body {
   gap: 20px;
 }
 
+.shortcuts-btn,
 .settings-btn {
   background: none;
   border: none;
@@ -703,12 +704,84 @@ html, body {
   opacity: 0.5;
   transition: opacity 0.15s, color 0.15s;
   outline: none;
+  font-family: inherit;
 }
 
+.shortcuts-btn:hover,
+.shortcuts-btn:focus,
 .settings-btn:hover,
 .settings-btn:focus {
   opacity: 1;
   color: var(--text);
+}
+
+/* Keyboard shortcuts popup */
+
+.shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.shortcuts-overlay[hidden] {
+  display: none;
+}
+
+.shortcuts-modal {
+  background: #1e1e1e;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.shortcuts-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.shortcuts-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.shortcuts-table tr + tr td {
+  padding-top: 14px;
+}
+
+.shortcut-key {
+  width: 90px;
+  vertical-align: top;
+}
+
+.shortcut-key kbd {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.shortcut-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  vertical-align: middle;
+  padding-left: 12px;
 }
 
 /* Settings modal */

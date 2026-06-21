@@ -7,6 +7,7 @@ import { initHome } from './home.js'
 import { applyI18n } from './i18n.js'
 import { loadTitle } from './config.js'
 import { initNews } from './news.js'
+import { initShortcuts } from './shortcuts.js'
 
 interface Service {
   name: string
@@ -116,6 +117,7 @@ function init(): void {
   void initHome()
   initSystem()
   void initNews()
+  initShortcuts()
   initSettings()
 }
 
