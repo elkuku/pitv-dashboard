@@ -76,53 +76,64 @@ function formatTime(d: Date): string {
 }
 
 function renderEvents(events: CalEvent[]): HTMLElement {
-  const today = new Date()
-  const tomorrow = new Date(today)
-  tomorrow.setDate(today.getDate() + 1)
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
 
-  const todayEvents = events.filter(e => isSameDay(e.start, today))
-  const tomorrowEvents = events.filter(e => isSameDay(e.start, tomorrow))
+  const upcoming = events.filter(e => e.start >= todayStart && e.start <= monthEnd)
 
   const root = document.createElement('div')
   root.className = 'cal-root'
 
-  const renderGroup = (label: string, evts: CalEvent[]) => {
+  if (upcoming.length === 0) {
+    const empty = document.createElement('span')
+    empty.className = 'cal-empty'
+    empty.textContent = 'No events this month'
+    root.appendChild(empty)
+    return root
+  }
+
+  // Group by date
+  const byDay = new Map<string, CalEvent[]>()
+  for (const evt of upcoming) {
+    const key = evt.start.toDateString()
+    if (!byDay.has(key)) byDay.set(key, [])
+    byDay.get(key)!.push(evt)
+  }
+
+  for (const [, dayEvents] of byDay) {
+    const d = dayEvents[0].start
+    const isToday = isSameDay(d, now)
+
     const group = document.createElement('div')
     group.className = 'cal-group'
 
     const heading = document.createElement('span')
-    heading.className = 'cal-group-label'
-    heading.textContent = label
+    heading.className = `cal-group-label${isToday ? ' cal-today' : ''}`
+    const dayName = isToday ? 'Today' : d.toLocaleDateString([], { weekday: 'short' })
+    const dayNum = d.toLocaleDateString([], { day: 'numeric', month: 'short' })
+    heading.textContent = `${dayName} · ${dayNum}`
     group.appendChild(heading)
 
-    if (evts.length === 0) {
-      const empty = document.createElement('span')
-      empty.className = 'cal-empty'
-      empty.textContent = 'No events'
-      group.appendChild(empty)
-    } else {
-      for (const evt of evts) {
-        const item = document.createElement('div')
-        item.className = 'cal-event'
+    for (const evt of dayEvents) {
+      const item = document.createElement('div')
+      item.className = 'cal-event'
 
-        const time = document.createElement('span')
-        time.className = 'cal-time'
-        time.textContent = evt.allDay ? 'All day' : formatTime(evt.start)
+      const time = document.createElement('span')
+      time.className = 'cal-time'
+      time.textContent = evt.allDay ? 'All day' : formatTime(evt.start)
 
-        const title = document.createElement('span')
-        title.className = 'cal-title'
-        title.textContent = evt.summary
+      const title = document.createElement('span')
+      title.className = 'cal-title'
+      title.textContent = evt.summary
 
-        item.append(time, title)
-        group.appendChild(item)
-      }
+      item.append(time, title)
+      group.appendChild(item)
     }
 
-    return group
+    root.appendChild(group)
   }
 
-  root.appendChild(renderGroup('Today', todayEvents))
-  root.appendChild(renderGroup('Tomorrow', tomorrowEvents))
   return root
 }
 

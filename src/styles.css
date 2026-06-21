@@ -263,7 +263,8 @@ html, body {
 
 .cal-root {
   display: flex;
-  gap: 32px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .cal-group {
@@ -280,6 +281,10 @@ html, body {
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 4px;
+}
+
+.cal-group-label.cal-today {
+  color: var(--text);
 }
 
 .cal-event {
