@@ -329,12 +329,51 @@ html, body {
 }
 
 .cal-grid-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.cal-month-label {
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
-  margin-bottom: 6px;
+  flex: 1;
+  text-align: center;
+}
+
+.cal-nav {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: color 0.15s, background 0.15s;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.cal-nav:hover,
+.cal-nav:focus {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.cal-nav-today {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  color: var(--accent);
 }
 
 .cal-grid-row {

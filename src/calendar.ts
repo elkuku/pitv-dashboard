@@ -17,6 +17,9 @@ interface CalEvent {
   allDay: boolean
 }
 
+let _cachedEvents: CalEvent[] = []
+let _monthOffset = 0
+
 function unfold(text: string): string {
   return text.replace(/\r?\n[ \t]/g, '')
 }
@@ -65,12 +68,17 @@ function formatTime(d: Date): string {
   return d.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
 }
 
-function renderCalendar(events: CalEvent[]): HTMLElement {
+function renderView(events: CalEvent[], container: HTMLElement, offset: number): void {
   const today = new Date()
-  const year = today.getFullYear()
-  const month = today.getMonth()
   const loc = locale()
 
+  // Compute the month being displayed
+  const displayDate = new Date(today.getFullYear(), today.getMonth() + offset, 1)
+  const year = displayDate.getFullYear()
+  const month = displayDate.getMonth()
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth()
+
+  // Index events by day for this month
   const eventDays = new Map<number, CalEvent[]>()
   for (const evt of events) {
     if (evt.start.getFullYear() === year && evt.start.getMonth() === month) {
@@ -87,13 +95,49 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
   const grid = document.createElement('div')
   grid.className = 'cal-grid'
 
-  const monthName = new Date(year, month, 1).toLocaleDateString(loc, { month: 'long', year: 'numeric' })
+  // Navigation header
   const header = document.createElement('div')
   header.className = 'cal-grid-header'
-  header.textContent = monthName
+
+  const prevBtn = document.createElement('button')
+  prevBtn.className = 'cal-nav'
+  prevBtn.textContent = '‹'
+  prevBtn.setAttribute('aria-label', 'Previous month')
+  prevBtn.addEventListener('click', () => {
+    _monthOffset--
+    renderView(_cachedEvents, container, _monthOffset)
+  })
+
+  const monthLabel = document.createElement('span')
+  monthLabel.className = 'cal-month-label'
+  monthLabel.textContent = displayDate.toLocaleDateString(loc, { month: 'long', year: 'numeric' })
+
+  const nextBtn = document.createElement('button')
+  nextBtn.className = 'cal-nav'
+  nextBtn.textContent = '›'
+  nextBtn.setAttribute('aria-label', 'Next month')
+  nextBtn.addEventListener('click', () => {
+    _monthOffset++
+    renderView(_cachedEvents, container, _monthOffset)
+  })
+
+  // "Today" jump button — only show when not on current month
+  if (!isCurrentMonth) {
+    const todayBtn = document.createElement('button')
+    todayBtn.className = 'cal-nav cal-nav-today'
+    todayBtn.textContent = t('today')
+    todayBtn.addEventListener('click', () => {
+      _monthOffset = 0
+      renderView(_cachedEvents, container, 0)
+    })
+    header.append(prevBtn, monthLabel, todayBtn, nextBtn)
+  } else {
+    header.append(prevBtn, monthLabel, nextBtn)
+  }
+
   grid.appendChild(header)
 
-  // Locale-aware day-of-week names starting Monday
+  // Day-of-week names (locale-aware, Mon-based)
   const dayNames = Array.from({ length: 7 }, (_, i) =>
     new Date(2024, 0, i + 1).toLocaleDateString(loc, { weekday: 'short' })
   )
@@ -107,21 +151,20 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
   }
   grid.appendChild(nameRow)
 
+  // Day cells
   const firstDayOfWeek = new Date(year, month, 1).getDay()
-  const offset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+  const offset2 = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
   let row = document.createElement('div')
   row.className = 'cal-grid-row'
 
-  for (let i = 0; i < offset; i++) {
-    const empty = document.createElement('span')
-    empty.className = 'cal-cell'
-    row.appendChild(empty)
+  for (let i = 0; i < offset2; i++) {
+    row.appendChild(Object.assign(document.createElement('span'), { className: 'cal-cell' }))
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const col = (offset + d - 1) % 7
+    const col = (offset2 + d - 1) % 7
     if (col === 0 && d > 1) {
       grid.appendChild(row)
       row = document.createElement('div')
@@ -132,8 +175,9 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
     cell.className = 'cal-cell'
     cell.textContent = String(d)
 
-    if (d === today.getDate()) cell.classList.add('cal-cell-today')
-    else if (d < today.getDate()) cell.classList.add('cal-cell-past')
+    const cellDate = new Date(year, month, d)
+    if (isSameDay(cellDate, today)) cell.classList.add('cal-cell-today')
+    else if (cellDate < today) cell.classList.add('cal-cell-past')
     if (eventDays.has(d)) cell.classList.add('cal-cell-event')
 
     row.appendChild(cell)
@@ -141,9 +185,14 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
   grid.appendChild(row)
   root.appendChild(grid)
 
-  // ── Upcoming events ──
-  const upcoming = events.filter(e => e.start >= new Date(year, month, today.getDate()))
-    .filter(e => e.start.getFullYear() === year && e.start.getMonth() === month)
+  // ── Events list ──
+  // Current month: from today onwards. Other months: all events in that month.
+  const monthStart = new Date(year, month, isCurrentMonth ? today.getDate() : 1)
+  const upcoming = events.filter(e =>
+    e.start >= monthStart &&
+    e.start.getFullYear() === year &&
+    e.start.getMonth() === month
+  )
 
   if (upcoming.length > 0) {
     const list = document.createElement('div')
@@ -174,12 +223,15 @@ function renderCalendar(events: CalEvent[]): HTMLElement {
     root.appendChild(list)
   }
 
-  return root
+  container.innerHTML = ''
+  container.appendChild(root)
 }
 
 export async function initCalendar(): Promise<void> {
   const container = document.getElementById('calendar')
   if (!container) return
+
+  _monthOffset = 0
 
   const url = loadCalendarUrl()
   if (!url) {
@@ -195,9 +247,8 @@ export async function initCalendar(): Promise<void> {
     const res = await fetch(`/api/calendar?url=${encodeURIComponent(url)}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const text = await res.text()
-    const events = parseICS(text)
-    container.innerHTML = ''
-    container.appendChild(renderCalendar(events))
+    _cachedEvents = parseICS(text)
+    renderView(_cachedEvents, container, _monthOffset)
   } catch {
     container.innerHTML = ''
     const msg = document.createElement('span')
