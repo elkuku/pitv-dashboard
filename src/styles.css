@@ -69,9 +69,8 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
-  flex: 1;
+  flex: 2;
   min-height: 0;
-  max-height: 470px;
 }
 
 .section {
@@ -127,8 +126,8 @@ html, body {
 }
 
 .tile-logo {
-  width: 72px;
-  height: 72px;
+  width: 100px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -236,8 +235,7 @@ html, body {
 .weather-forecast {
   display: flex;
   gap: 10px;
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 140px;
 }
 
 .weather-day {
@@ -572,13 +570,16 @@ html, body {
 
 /* Home controls */
 
-.section-home,
-.section-streaming {
+.section-home {
   flex: 0 0 auto;
 }
 
+.section-streaming {
+  flex: 1;
+}
+
 .section-streaming .grid {
-  flex: none;
+  flex: 1;
 }
 
 .home-controls {
