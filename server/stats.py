@@ -4,6 +4,7 @@ import json, urllib.request, urllib.parse, os
 
 _last_cpu = None
 _ha = None
+_tide_cache: dict = {}
 
 def load_ha_config():
     global _ha
@@ -103,6 +104,34 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_response(502); self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif parsed.path == '/api/tides':
+            key = _ha.get('stormglass_key', '') if _ha else ''
+            if not key:
+                self.send_json({'error': 'no stormglass key'}, 404); return
+            lat = params.get('lat', [None])[0]
+            lng = params.get('lng', [None])[0]
+            if not lat or not lng:
+                self.send_json({'error': 'missing lat/lng'}, 400); return
+            from datetime import datetime, timezone, timedelta
+            today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            cache_key = f"{lat},{lng},{today}"
+            if _tide_cache.get('key') == cache_key:
+                self.send_json(_tide_cache['data']); return
+            start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
+            tide_url = (f"https://api.stormglass.io/v2/tide/extremes/point"
+                        f"?lat={lat}&lng={lng}"
+                        f"&start={start.isoformat()}&end={end.isoformat()}")
+            req = urllib.request.Request(tide_url, headers={'Authorization': key})
+            try:
+                with urllib.request.urlopen(req, timeout=10) as res:
+                    data = json.loads(res.read())
+                    _tide_cache['key'] = cache_key
+                    _tide_cache['data'] = data
+                    self.send_json(data)
+            except Exception as e:
+                self.send_json({'error': str(e)}, 502)
 
         elif parsed.path == '/api/ha/devices':
             if not _ha:

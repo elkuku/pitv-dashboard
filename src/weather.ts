@@ -1,5 +1,5 @@
 import { loadLocation } from './config.js'
-import { t, locale, wmoLabel } from './i18n.js'
+import { t, locale, wmoLabel, type TranslationKey } from './i18n.js'
 
 interface OpenMeteoResponse {
   current: {
@@ -19,6 +19,12 @@ interface OpenMeteoResponse {
     sunrise: string[]
     sunset: string[]
   }
+}
+
+interface TideExtreme {
+  height: number
+  time: string
+  type: 'high' | 'low'
 }
 
 const WMO_ICON: Record<number, string> = {
@@ -42,17 +48,83 @@ function dayLabel(dateStr: string, index: number): string {
   return new Date(`${dateStr}T12:00:00`).toLocaleDateString(locale(), { weekday: 'short' })
 }
 
-function stat(icon: string, value: string, label: string): HTMLElement {
+function moonPhase(date: Date): { emoji: string; nameKey: TranslationKey } {
+  // Known new moon: 2000-01-06 18:14 UTC
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14)
+  const synodicPeriod = 29.530588
+  const elapsed = (date.getTime() - knownNewMoon) / 86_400_000
+  const age = ((elapsed % synodicPeriod) + synodicPeriod) % synodicPeriod
+
+  if (age < 1.85)  return { emoji: '🌑', nameKey: 'moonNew' }
+  if (age < 7.38)  return { emoji: '🌒', nameKey: 'moonWaxingCrescent' }
+  if (age < 11.08) return { emoji: '🌓', nameKey: 'moonFirstQuarter' }
+  if (age < 14.77) return { emoji: '🌔', nameKey: 'moonWaxingGibbous' }
+  if (age < 16.61) return { emoji: '🌕', nameKey: 'moonFull' }
+  if (age < 22.15) return { emoji: '🌖', nameKey: 'moonWaningGibbous' }
+  if (age < 25.84) return { emoji: '🌗', nameKey: 'moonLastQuarter' }
+  return { emoji: '🌘', nameKey: 'moonWaningCrescent' }
+}
+
+function stat(icon: string, value: string, label: string, extraClass = ''): HTMLElement {
   const el = document.createElement('div')
-  el.className = 'weather-stat'
+  el.className = `weather-stat${extraClass ? ' ' + extraClass : ''}`
   el.innerHTML = `<span class="weather-stat-icon">${icon}</span><span class="weather-stat-value">${value}</span><span class="weather-stat-label">${label}</span>`
   return el
 }
 
-function renderWeather(data: OpenMeteoResponse): HTMLElement {
+async function fetchTides(lat: number, lng: number): Promise<TideExtreme[] | null> {
+  try {
+    const res = await fetch(`/api/tides?lat=${lat}&lng=${lng}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return Array.isArray(data.data) ? data.data : null
+  } catch {
+    return null
+  }
+}
+
+function renderTides(tides: TideExtreme[]): HTMLElement {
+  const row = document.createElement('div')
+  row.className = 'weather-tides'
+
+  const label = document.createElement('span')
+  label.className = 'weather-tides-label'
+  label.textContent = `🌊 ${t('tides')}`
+  row.appendChild(label)
+
+  const items = document.createElement('div')
+  items.className = 'weather-tides-items'
+
+  const loc = locale()
+  for (const tide of tides) {
+    const card = document.createElement('div')
+    card.className = `weather-tide ${tide.type}`
+
+    const arrow = document.createElement('span')
+    arrow.className = 'weather-tide-arrow'
+    arrow.textContent = tide.type === 'high' ? '▲' : '▼'
+
+    const time = document.createElement('span')
+    time.className = 'weather-tide-time'
+    time.textContent = new Date(tide.time).toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' })
+
+    const lbl = document.createElement('span')
+    lbl.className = 'weather-tide-label'
+    lbl.textContent = tide.type === 'high' ? t('tideHigh') : t('tideLow')
+
+    card.append(arrow, time, lbl)
+    items.appendChild(card)
+  }
+
+  row.appendChild(items)
+  return row
+}
+
+function renderWeather(data: OpenMeteoResponse, tides: TideExtreme[] | null): HTMLElement {
   const { current, daily } = data
   const icon = wmoIcon(current.weather_code)
   const label = wmoLabel(current.weather_code)
+  const moon = moonPhase(new Date())
 
   const root = document.createElement('div')
   root.className = 'weather'
@@ -78,11 +150,11 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
 
   info.append(tempEl, condEl)
 
-  const statsEl = document.createElement('div')
-  statsEl.className = 'weather-stats'
   const fmtTime = (iso: string) =>
     new Date(iso).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
 
+  const statsEl = document.createElement('div')
+  statsEl.className = 'weather-stats'
   statsEl.append(
     stat('🌡️', `${Math.round(current.apparent_temperature)}°C`, t('feelsLike')),
     stat('💧', `${current.relative_humidity_2m}%`, t('humidity')),
@@ -90,6 +162,7 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
     stat('☀️', String(Math.round(current.uv_index)), t('uvIndex')),
     stat('🌅', fmtTime(daily.sunrise[0]), t('sunrise')),
     stat('🌇', fmtTime(daily.sunset[0]), t('sunset')),
+    stat(moon.emoji, t(moon.nameKey), t('moon'), 'weather-stat-moon'),
   )
 
   cur.append(iconEl, info, statsEl)
@@ -129,6 +202,7 @@ function renderWeather(data: OpenMeteoResponse): HTMLElement {
   }
 
   root.append(cur, forecast)
+  if (tides && tides.length > 0) root.appendChild(renderTides(tides))
   return root
 }
 
@@ -149,11 +223,14 @@ export async function initWeather(): Promise<void> {
     `&timezone=auto&forecast_days=5`
 
   try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data: OpenMeteoResponse = await res.json()
+    const [weatherRes, tides] = await Promise.all([
+      fetch(url),
+      fetchTides(latitude, longitude),
+    ])
+    if (!weatherRes.ok) throw new Error(`HTTP ${weatherRes.status}`)
+    const data: OpenMeteoResponse = await weatherRes.json()
     container.innerHTML = ''
-    container.appendChild(renderWeather(data))
+    container.appendChild(renderWeather(data, tides))
   } catch {
     container.textContent = t('weatherError')
     container.classList.add('weather-error')
