@@ -49,9 +49,9 @@ Location for the weather section is set in `src/config.ts`:
 
 ```typescript
 location: {
-  name: 'Berlin',      // display name shown in the section header
-  latitude: 52.52,     // decimal degrees
-  longitude: 13.41,
+  name: 'Mannheim',    // display name shown in the section header
+  latitude: 49.4891,   // decimal degrees
+  longitude: 8.4669,
 }
 ```
 
