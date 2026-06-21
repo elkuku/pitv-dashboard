@@ -43,6 +43,20 @@ https://github.com/elkuku/pitv-dashboard
 
 No test framework is set up yet. Verify changes with `npm run check` (type errors) and `npm run build` (bundle errors), then manual browser testing with `npm run dev`.
 
+## Configuration
+
+Location for the weather section is set in `src/config.ts`:
+
+```typescript
+location: {
+  name: 'Berlin',      // display name shown in the section header
+  latitude: 52.52,     // decimal degrees
+  longitude: 13.41,
+}
+```
+
+Weather data is fetched from Open-Meteo (free, no API key). It refreshes every 30 minutes.
+
 ## Conventions
 
 - Do not hardcode colors — use the CSS custom properties defined in `src/styles.css`:
