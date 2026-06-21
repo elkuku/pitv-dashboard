@@ -24,11 +24,120 @@ html, body {
   user-select: none;
 }
 
-#app {
+::-webkit-scrollbar { display: none; }
+
+/* Dashboard layout */
+
+.dashboard {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  background: radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #0d0d0d 70%);
 }
 
-/* scrollbar hidden for TV feel */
-::-webkit-scrollbar { display: none; }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 56px 0;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+
+.clock {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.grid-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 56px 60px;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Service tile */
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-decoration: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  outline: none;
+  aspect-ratio: 3/2;
+}
+
+.tile:hover,
+.tile:focus {
+  background: var(--surface-hover);
+  border-color: var(--brand, #fff);
+  transform: scale(1.04);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand, #fff) 40%, transparent);
+}
+
+.tile-logo {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.tile-initials {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--brand, #fff);
+}
+
+.tile-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.03em;
+}
