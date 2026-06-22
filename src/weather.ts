@@ -127,7 +127,7 @@ function renderTides(tides: TideExtreme[], station: string): HTMLElement {
   return row
 }
 
-function renderTempGraph(hourly: { time: string[]; temperature_2m: number[] }): HTMLElement | null {
+function renderTempGraph(hourly: { time: string[]; temperature_2m: number[] }, sunrise: string[], sunset: string[]): HTMLElement | null {
   const now = Date.now()
   const windowMs = 12 * 60 * 60 * 1000
 
@@ -245,6 +245,21 @@ function renderTempGraph(hourly: { time: string[]; temperature_2m: number[] }): 
     svg.appendChild(lt)
   }
 
+  const drawSunMarker = (isoTime: string, emoji: string, color: string) => {
+    const ts = new Date(isoTime).getTime()
+    if (ts < t0 || ts > tEnd) return
+    const tx = xOf(ts)
+    svg.appendChild(svgEl('line', {
+      x1: tx, y1: pT, x2: tx, y2: bottomY,
+      stroke: color, 'stroke-width': '1', opacity: '0.5', 'stroke-dasharray': '2,2',
+    }))
+    const em = svgEl('text', { x: tx, y: pT - 1, 'text-anchor': 'middle', 'font-size': '11' })
+    em.textContent = emoji
+    svg.appendChild(em)
+  }
+  for (const sr of sunrise.slice(0, 2)) drawSunMarker(sr, '🌅', '#fbbf24')
+  for (const ss of sunset.slice(0, 2)) drawSunMarker(ss, '🌇', '#f97316')
+
   return svg as unknown as HTMLElement
 }
 
@@ -330,7 +345,7 @@ function renderWeather(data: OpenMeteoResponse, tidesResult: { tides: TideExtrem
   }
 
   root.appendChild(cur)
-  const graphEl = renderTempGraph(data.hourly)
+  const graphEl = renderTempGraph(data.hourly, data.daily.sunrise, data.daily.sunset)
   if (graphEl) {
     const wrap = document.createElement('div')
     wrap.className = 'weather-temp-graph'
