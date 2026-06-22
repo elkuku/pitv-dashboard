@@ -6,7 +6,7 @@ A TV kiosk dashboard for a Raspberry Pi 5 connected to a 4K display. Built with 
 
 ## Features
 
-- **Weather** — current conditions, 5-day forecast, moon phase, sunrise/sunset (Open-Meteo)
+- **Weather** — current conditions, 5-day forecast, moon phase, sunrise/sunset; hourly temperature graph (±12 h) with rain probability bars and sunrise/sunset markers (Open-Meteo)
 - **Tides** — today's high/low tide extremes with station name (Stormglass API)
 - **Calendar** — monthly grid + upcoming events with month navigation (Google Calendar ICS)
 - **Home Assistant** — toggle switches and lamps directly from the dashboard
