@@ -13,6 +13,7 @@ interface OpenMeteoResponse {
   hourly: {
     time: string[]
     temperature_2m: number[]
+    precipitation_probability: number[]
   }
   daily: {
     time: string[]
@@ -127,7 +128,7 @@ function renderTides(tides: TideExtreme[], station: string): HTMLElement {
   return row
 }
 
-function renderTempGraph(hourly: { time: string[]; temperature_2m: number[] }, sunrise: string[], sunset: string[]): HTMLElement | null {
+function renderTempGraph(hourly: { time: string[]; temperature_2m: number[]; precipitation_probability: number[] }, sunrise: string[], sunset: string[]): HTMLElement | null {
   const now = Date.now()
   const windowMs = 12 * 60 * 60 * 1000
 
@@ -200,6 +201,22 @@ function renderTempGraph(hourly: { time: string[]; temperature_2m: number[] }, s
     d: `${linePath} L${plotPts[plotPts.length - 1].x.toFixed(1)},${bottomY} L${plotPts[0].x.toFixed(1)},${bottomY} Z`,
     fill: 'url(#tg)',
   }))
+
+  // Rain probability bars (behind temperature line)
+  const hrMs = 3600000
+  const barW = Math.max(1, (hrMs / (tEnd - t0)) * gW)
+  const maxBarH = 12
+  hourly.time
+    .map((t, i) => ({ ts: new Date(t).getTime(), prob: hourly.precipitation_probability[i] ?? 0 }))
+    .filter(p => p.ts >= t0 && p.ts <= tEnd && p.prob > 0)
+    .forEach(p => {
+      const bh = (p.prob / 100) * maxBarH
+      svg.appendChild(svgEl('rect', {
+        x: xOf(p.ts) - barW / 2, y: bottomY - bh, width: barW, height: bh,
+        fill: '#60a5fa', opacity: '0.65', rx: '1',
+      }))
+    })
+
   svg.appendChild(svgEl('path', {
     d: linePath,
     fill: 'none',
@@ -370,7 +387,7 @@ export async function initWeather(): Promise<void> {
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${latitude}&longitude=${longitude}` +
     `&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,uv_index` +
-    `&hourly=temperature_2m` +
+    `&hourly=temperature_2m,precipitation_probability` +
     `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset` +
     `&past_hours=12&forecast_hours=13` +
     `&timezone=auto&forecast_days=5`
