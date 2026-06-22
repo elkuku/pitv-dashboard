@@ -3,7 +3,7 @@ import { getLang, setLang, type Lang } from './i18n.js'
 const LANGS: Lang[] = ['en', 'de', 'es']
 
 const SHORTCUTS = [
-  { key: '1 – 5',  desc: 'Open streaming service' },
+  { key: '1 – 6',  desc: 'Open streaming service' },
   { key: 'Q / W',  desc: 'Toggle switch 1 / 2' },
   { key: '← →',   desc: 'Calendar prev / next month' },
   { key: 'T',      desc: 'Jump to today' },
@@ -69,7 +69,7 @@ export function initShortcuts(): void {
     }
 
     // 1–5: open streaming tiles
-    if (e.key >= '1' && e.key <= '5') {
+    if (e.key >= '1' && e.key <= '6') {
       const tiles = document.querySelectorAll<HTMLAnchorElement>('.tile')
       tiles[parseInt(e.key) - 1]?.click()
       return

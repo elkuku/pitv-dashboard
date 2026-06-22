@@ -47,6 +47,12 @@ const services: Service[] = [
     color: '#a855f7',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/1/17/HBO_Max_Logo.svg',
   },
+  {
+    name: 'Feedly',
+    url: 'https://feedly.com',
+    color: '#2bb24c',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Feedly_Logo.svg',
+  },
 ]
 
 function getInitials(name: string): string {
