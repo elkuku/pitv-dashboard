@@ -232,6 +232,16 @@ html, body {
   letter-spacing: 0.04em;
 }
 
+.weather-temp-graph {
+  flex-shrink: 0;
+}
+
+.weather-temp-graph-svg {
+  display: block;
+  font-family: inherit;
+  overflow: visible;
+}
+
 .weather-forecast {
   display: flex;
   gap: 10px;
