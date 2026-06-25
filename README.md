@@ -1,6 +1,6 @@
 # KuKu's Home
 
-A TV kiosk dashboard for a Raspberry Pi 5 connected to a 4K display. Built with HTML, TypeScript, and Vite — no framework.
+A TV kiosk dashboard for a Raspberry Pi 5 connected to a 4K display. Built with HTML, TypeScript, and esbuild — no framework.
 
 ![Dashboard screenshot](screenshot.png)
 
@@ -10,14 +10,14 @@ A TV kiosk dashboard for a Raspberry Pi 5 connected to a 4K display. Built with 
 - **Tides** — today's high/low tide extremes with station name (Stormglass API)
 - **Calendar** — monthly grid + upcoming events with month navigation (Google Calendar ICS)
 - **Home Assistant** — toggle switches and lamps directly from the dashboard
-- **Streaming shortcuts** — one-click links to Netflix, YouTube, Disney+, Spotify, HBO Max
+- **Streaming shortcuts** — one-click links to Netflix, YouTube, Disney+, Spotify, HBO Max, Feedly
 - **System stats** — CPU temperature, CPU usage, RAM usage
 - **Multilingual** — English, German, Spanish
 - **Configurable** — dashboard title, location, language, calendar URL via settings modal
 
 ## Stack
 
-- **Frontend:** HTML + TypeScript + CSS (Vite, no framework)
+- **Frontend:** HTML + TypeScript + CSS (esbuild, no framework)
 - **Backend:** Python HTTP server (`server/stats.py`) on port 3001
 - **Serving:** nginx on port 80
 - **Display:** Chromium in kiosk mode, `--force-device-scale-factor=2` for 4K
@@ -84,8 +84,9 @@ python3 server/stats.py
 ## Development
 
 ```bash
-npm run dev      # Vite dev server
+npm run dev      # esbuild watch + serve on port 5173 (no HMR)
 npm run check    # TypeScript type check
+npm run smoke    # Headless smoke test with fake data → screenshot.png
 ```
 
 ## API endpoints
