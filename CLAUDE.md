@@ -11,7 +11,7 @@ This file provides guidance to Claude Code when working in `pitv-dashboard/`.
 - **HTML** — static layout in `index.html`
 - **TypeScript** — all logic in `src/` (no framework)
 - **CSS** — all styles in `src/styles.css` (no scoped/component CSS)
-- **Vite** — build tool (handles TS natively, no framework plugin needed)
+- **esbuild** — build tool (`scripts/build.js`); bundles TS + extracts CSS to `dist/assets/`
 - **Python** — `server/stats.py` runs as a local HTTP server on port 3001
 
 ## Source files
@@ -35,10 +35,10 @@ This file provides guidance to Claude Code when working in `pitv-dashboard/`.
 Run from inside `pitv-dashboard/`:
 
 ```
-npm run dev       # Dev server (Vite)
-npm run build     # Production build → dist/
+npm run dev       # Dev server (esbuild watch + serve, port 5173, no HMR)
+npm run build     # Production build → dist/ (minified)
 npm run check     # TypeScript type check (tsc --noEmit)
-npm run preview   # Preview production build locally
+npm run preview   # Serve dist/ on port 4173
 ```
 
 ## Deployment
