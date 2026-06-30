@@ -23,7 +23,7 @@ async function toggleDevice(entityId: string): Promise<HADevice> {
   return res.json()
 }
 
-function renderDevice(dev: HADevice): HTMLElement {
+function renderDevice(dev: HADevice): HTMLButtonElement {
   const card = document.createElement('button')
   card.className = `home-device${dev.state === 'on' ? ' on' : ''}`
   card.dataset.entityId = dev.entity_id
