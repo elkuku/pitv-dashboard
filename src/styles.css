@@ -109,7 +109,7 @@ html, body {
   background: var(--surface);
   border: 2px solid var(--border);
   border-radius: 16px;
-  padding: 14px 12px;
+  padding: 8px 8px;
   text-decoration: none;
   color: var(--text);
   cursor: pointer;
@@ -580,12 +580,20 @@ html, body {
 
 /* Home controls */
 
-.section-home {
+.home-row {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.home-row .section-home {
+  flex: 1;
 }
 
 .section-streaming {
   flex: 1;
+  min-height: 0;
 }
 
 .section-streaming .grid {
@@ -1045,4 +1053,78 @@ html, body {
   font-size: 0.55rem;
   color: var(--text-muted);
   margin: 0 20px;
+}
+
+/* Webcams */
+
+.section-webcams {
+  flex: 0 0 auto;
+}
+
+.webcam-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+.webcam-thumb {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.webcam-thumb:hover,
+.webcam-thumb:focus {
+  border-color: var(--text-muted);
+  transform: scale(1.02);
+  box-shadow: 0 0 0 var(--focus-ring);
+}
+
+.webcam-thumb img {
+  height: 85px;
+  width: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.webcam-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+/* Webcam lightbox */
+
+.webcam-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  cursor: pointer;
+}
+
+.webcam-overlay[hidden] {
+  display: none;
+}
+
+.webcam-full {
+  max-width: 92vw;
+  max-height: 92vh;
+  border-radius: 14px;
+  object-fit: contain;
+  pointer-events: none;
 }

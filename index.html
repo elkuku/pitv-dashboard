@@ -36,10 +36,25 @@
             <div id="calendar"></div>
           </section>
         </div>
-        <section class="section section-home">
-          <h2 class="section-title" data-i18n="sectionHome"></h2>
-          <div class="home-controls" id="home-controls"></div>
-        </section>
+        <div class="home-row">
+          <section class="section section-home">
+            <h2 class="section-title" data-i18n="sectionHome"></h2>
+            <div class="home-controls" id="home-controls"></div>
+          </section>
+          <section class="section section-webcams">
+            <h2 class="section-title">Webcams</h2>
+            <div class="webcam-row">
+              <button class="webcam-thumb" data-full="https://www.foto-webcam.eu/webcam/feldberg-ts/current/1920.jpg" aria-label="Feldberg Taunus">
+                <img src="https://www.foto-webcam.eu/webcam/feldberg-ts/current/400.jpg" alt="Feldberg Taunus">
+                <span class="webcam-label">Feldberg Taunus</span>
+              </button>
+              <button class="webcam-thumb" data-full="https://embed.skylinewebcams.com/img/5706.jpg" aria-label="Montañita">
+                <img src="https://embed.skylinewebcams.com/img/5706.jpg" alt="Montañita">
+                <span class="webcam-label">Montañita</span>
+              </button>
+            </div>
+          </section>
+        </div>
         <section class="section section-streaming">
           <h2 class="section-title" data-i18n="sectionStreaming"></h2>
           <div class="grid" id="service-grid"></div>
@@ -49,6 +64,9 @@
         <span class="ticker-label">NEWS</span>
         <div class="ticker-track" id="news-ticker"></div>
       </div>
+    </div>
+    <div class="webcam-overlay" id="webcam-overlay" hidden>
+      <img class="webcam-full" id="webcam-full" src="" alt="">
     </div>
     <div class="settings-overlay" id="settings-overlay" hidden>
       <div class="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">

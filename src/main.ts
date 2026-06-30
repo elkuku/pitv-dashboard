@@ -8,6 +8,7 @@ import { applyI18n } from './i18n.js'
 import { loadTitle } from './config.js'
 import { initNews } from './news.js'
 import { initShortcuts } from './shortcuts.js'
+import { initWebcams } from './webcams.js'
 
 interface Service {
   name: string
@@ -125,6 +126,7 @@ function init(): void {
   void initNews()
   initShortcuts()
   initSettings()
+  initWebcams()
 }
 
 init()
