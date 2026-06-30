@@ -23,8 +23,8 @@ const ctx = await esbuild.context({
 
 if (dev) {
   await ctx.watch()
-  const { host, port } = await ctx.serve({ servedir: 'dist', port: 5173 })
-  console.log(`Dev server → http://${host}:${port}`)
+  const { port } = await ctx.serve({ servedir: 'dist', port: 5173 })
+  console.log(`Dev server → http://localhost:${port}`)
 } else {
   await ctx.rebuild()
   await ctx.dispose()
