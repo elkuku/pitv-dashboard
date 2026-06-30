@@ -3,6 +3,7 @@ import { getLang } from './i18n.js'
 interface NewsItem {
   title: string
   source: string
+  url?: string
 }
 
 function renderTicker(items: NewsItem[]): void {
@@ -11,7 +12,12 @@ function renderTicker(items: NewsItem[]): void {
 
   const sep = '<span class="ticker-sep">◆</span>'
   const html = items
-    .map(i => `<span class="ticker-source">${i.source}</span><span class="ticker-item">${i.title}</span>`)
+    .map(i => {
+      const item = i.url
+        ? `<a class="ticker-item" href="${i.url}">${i.title}</a>`
+        : `<span class="ticker-item">${i.title}</span>`
+      return `<span class="ticker-source">${i.source}</span>${item}`
+    })
     .join(sep)
 
   const inner = document.createElement('div')

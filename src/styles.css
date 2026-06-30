@@ -1047,6 +1047,12 @@ html, body {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--text);
+  text-decoration: none;
+}
+
+a.ticker-item:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 .ticker-sep {

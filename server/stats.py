@@ -43,8 +43,9 @@ def fetch_news(lang='en'):
             channel = root.find('channel') or root
             for item in channel.findall('item')[:5]:
                 title = (item.findtext('title') or '').strip()
+                url = (item.findtext('link') or '').strip()
                 if title:
-                    items.append({'title': title, 'source': source})
+                    items.append({'title': title, 'source': source, 'url': url})
         except Exception:
             pass
     if items:
